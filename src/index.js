@@ -1,8 +1,10 @@
 module.exports = function solveSudoku(matrix) {
   let arrayWithZeros = [];
+  let validNumbers = 9;
 
   // find all positions of zero
-  function findZerosPosition() {
+  function findZerosPosition(matrix) {
+    arrayWithZeros = [];
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
         if (matrix[i][j] === 0) {
@@ -12,11 +14,17 @@ module.exports = function solveSudoku(matrix) {
     }
   }
 
+  findZerosPosition(matrix);
+
   function getArrayWithNumbers() {
     return [1, 2, 3, 4, 5, 6, 7, 8, 9];
   }
 
-  function checkRow(row, guessNumber) {
+  function getStartingMatrix(matrix3) {
+    return matrix3.map(el => el);
+  }
+
+  function checkRow(matrix, row, guessNumber) {
     if (matrix[row].includes(guessNumber) === false) {
       return true;
     } else {
@@ -24,17 +32,16 @@ module.exports = function solveSudoku(matrix) {
     }
   }
 
-  function checkColumn(column, guessNumber) {
+  function checkColumn(matrix, column, guessNumber) {
     for (let i = 0; i < 9; i++) {
       if (matrix[i][column] === guessNumber) {
         return false;
       }
     }
-
     return true;
   }
 
-  function checkSquare(row, column, guessNumber) {
+  function checkSquare(matrix, row, column, guessNumber) {
     let cubeRow = Math.floor(row / 3) * 3;
     let cubeColumn = Math.floor(column / 3) * 3;
     for (let i = 0; i < 3; i++) {
@@ -47,11 +54,11 @@ module.exports = function solveSudoku(matrix) {
     return true;
   }
 
-  function checkCorrectSudoku(row, column, guessNumber) {
+  function checkCorrectSudoku(matrix, row, column, guessNumber) {
     if (
-      checkRow(row, guessNumber) === false ||
-      checkColumn(column, guessNumber) === false ||
-      checkSquare(row, column, guessNumber) === false
+      checkRow(matrix, row, guessNumber) === false ||
+      checkColumn(matrix, column, guessNumber) === false ||
+      checkSquare(matrix, row, column, guessNumber) === false
     ) {
       return false;
     } else {
@@ -59,27 +66,30 @@ module.exports = function solveSudoku(matrix) {
     }
   }
 
-  function trySolve() {
-    // for -> how much zeros
-    for (let i = 0; i < arrayWithZeros.length; i++) {
-      // insert number one by one while all tests are ok, or just change number -> += 1
-      for (let j = 1; j < 10; j++) {
-        if (checkCorrectSudoku(arrayWithZeros[i][0], arrayWithZeros[i][1], j) === true) {
-          matrix[arrayWithZeros[i][0]][arrayWithZeros[i][1]] = j;
-          break;
+  function trySolve(matrix) {
+    for (let i = 0; i < arrayWithZeros.length; ) {
+      let row = arrayWithZeros[i][0];
+      let column = arrayWithZeros[i][1];
+      let guessNumber = matrix[row][column] + 1;
+      let isSudokuSolved = false;
+
+      for (; isSudokuSolved === false && guessNumber <= validNumbers; ) {
+        if (checkCorrectSudoku(matrix, row, column, guessNumber)) {
+          isSudokuSolved = true;
+          matrix[row][column] = guessNumber;
+          i += 1;
+        } else {
+          guessNumber += 1;
         }
       }
+
+      if (isSudokuSolved === false) {
+        matrix[row][column] = 0;
+        i--;
+      }
     }
+    return matrix;
   }
 
-  findZerosPosition();
-  trySolve();
-  findZerosPosition();
-  trySolve();
-  findZerosPosition();
-  trySolve();
-  findZerosPosition();
-  trySolve();
-
-  return matrix;
+  return trySolve(matrix);
 };
